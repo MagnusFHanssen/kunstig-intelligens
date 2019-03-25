@@ -5,9 +5,9 @@ from matplotlib import colors
 
 
 class MapNode:
-    def __init__(self, x, y, gCost, hCost):
-        self.gCost = gCost
-        self.hCost = hCost
+    def __init__(self, x, y, gcost, goal):
+        self.gCost = gcost
+        self.hCost = abs(x - goal[0]) + abs(y - goal[1])
         self.x = x
         self.y = y
         self.fCost = self.gCost + self.hCost
@@ -21,13 +21,14 @@ class MapNode:
 
 class SearchMap:
     cmap = colors.ListedColormap(['white', 'green', 'red', 'yellow', 'purple'])
-    height = 10
-    width = 10
+    path = []
 
-    def __init__(self):
+    def __init__(self, width=10, height=10):
+        self.height = height
+        self.width = width
         self.map = np.ones((self.height, self.height))
-        self.start = [rnd.randint(0, self.height/2 - 1), rnd.randint(0, self.width/2 - 1)]
-        self.goal = [rnd.randint(self.height/2, self.height - 1), rnd.randint(self.width/2, self.width - 1)]
+        self.start = [rnd.randint(0, self.height / 2 - 1), rnd.randint(0, self.width / 2 - 1)]
+        self.goal = [rnd.randint(self.height / 2, self.height - 1), rnd.randint(self.width / 2, self.width - 1)]
 
         while self.start == self.goal:
             self.goal = [rnd.randint(0, self.height - 1), rnd.randint(0, self.width - 1)]
@@ -40,24 +41,27 @@ class SearchMap:
                 else:
                     if r > 0.8:
                         self.map[y][x] = 2
-        self.map[self.start[0]][self.start[1]] = 4
-        self.map[self.goal[0]][self.goal[1]] = 5
+        self.map[self.start[1]][self.start[0]] = 4
+        self.map[self.goal[1]][self.goal[0]] = 5
 
-    def plot(self):
+    def plot_chart(self):
         plt.figure(figsize=(6, 6))
-        plt.xticks(np.arange(0.5, 10.5, step=1))
-        plt.yticks(np.arange(0.5, 10.5, step=1))
         plt.pcolor(searchMap.map, cmap=self.cmap, edgecolors='k', linewidths=3)
+        plt.show()
 
-    def path(self):
-        return [1, 2]
+    def h(self, x, y):
+        return abs(x - self.goal[0]) + abs(y - self.goal[1])
 
+    def plot(self, x, y):
+        plt.scatter([x + 0.5], [y + 0.5], s=(1200 / max(self.width, self.height)))
 
-
-
+    def get_neighbours(self, x, y):
+        list = []
+        # Node to the left
+        if x >= 1:
+            list.append(MapNode(x - 1, y, ))
 
 searchMap = SearchMap()
 
 
-
-
+exit(0)
