@@ -8,9 +8,7 @@ def heuristic(x1, y1, x2, y2):
     """
     This heuristic makes the assumption that it's possible
     to reach the goal by the ideal route from any node.
-    The length of a theoretical ideal path can then be found.
-    Thus, if the ideal path through any node is longer than
-    the shortest path already found, that path can be discarded.
+    The length of an ideal path can then be found.
     :param x1: x-coordinate of first node
     :param y1: y-coordinate of first node
     :param x2: x-coordinate of second node
@@ -25,12 +23,11 @@ def heuristic(x1, y1, x2, y2):
 class MapNode:
     def __init__(self, x, y, cost, goal, parent=None):
         self.cost = cost
-        self.gcost = cost + (parent.gcost if parent is not None else 0)
+        self.set_parent(parent)
         self.hcost = heuristic(x, y, goal[0], goal[1])
         self.x = x
         self.y = y
         self.fcost = self.gcost + self.hcost
-        self.parent = parent
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y  # self.fcost == other.fcost
@@ -41,24 +38,28 @@ class MapNode:
     def same(self, node):
         return self.x == node.x and self.y == node.y if node is not None else False
 
-    def set_parent(self, node):
-        self.parent = node
-        gcost = self.cost + self.parent.gcost
+    def set_parent(self, parent):
+        self.parent = parent
+        if parent is not None:
+            self.gcost = self.cost + parent.gcost
+        else:
+            self.gcost = self.cost
 
 
+# I haven't really used python before, so I have to apologize if there is superfluous code left over from
+# where I changed tracks, got new ideas or gained new understanding of the language and the problem
 class World:
     cmap = colors.ListedColormap(['purple', 'white', 'green', 'red', 'yellow'])
-    path = []
 
     def __init__(self, width=10, height=10):
         self.height = height
         self.width = width
-        self.map = np.ones((self.height, self.height))
-        self.start = [rnd.randint(0, self.height / 2 - 1), rnd.randint(0, self.width / 2 - 1)]
-        self.goal = [rnd.randint(self.height / 2, self.height - 1), rnd.randint(self.width / 2, self.width - 1)]
-
-        while self.start == self.goal:
+        self.map = np.ones((self.height, self.width))
+        self.start = [rnd.randint(0, self.height - 1), rnd.randint(0, self.width - 1)]
+        while True:
             self.goal = [rnd.randint(0, self.height - 1), rnd.randint(0, self.width - 1)]
+            if self.goal != self.start:
+                break
 
         for y in range(0, self.height - 1):
             for x in range(0, self.width - 1):
@@ -72,7 +73,7 @@ class World:
 
     def plot_chart(self, tracks=[]):
         plt.figure(figsize=(6, 6))
-        plt.pcolor(world.map, cmap=self.cmap, edgecolors='k', linewidths=3)
+        plt.pcolor(world.map, cmap=self.cmap, edgecolors='k', linewidths=1)
         for track in tracks:
             self.plot(track[0], track[1])
         plt.show()
@@ -134,8 +135,9 @@ class World:
 
         return self.backtrack(current) if success else []
 
-
+# Initializes world as a 30-by-30 World
 world = World(30, 30)
-# world.plot_chart()
+# world.find_best_route() only returns a list of coordinates
 tracks = world.find_best_route()
+#This function is the one to actually draw anythin to the screen.
 world.plot_chart(tracks)
