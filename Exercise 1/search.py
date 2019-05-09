@@ -136,7 +136,7 @@ class World:
         return self.backtrack(current) if success else []
 
 # Initializes world as a 30-by-30 World
-world = World(30, 30)
+world = World(40, 40)
 # world.find_best_route() only returns a list of coordinates
 tracks = world.find_best_route()
 #This function is the one to actually draw anythin to the screen.
