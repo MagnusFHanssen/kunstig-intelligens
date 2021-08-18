@@ -9,11 +9,11 @@ class Strategy(Enum):
 
 
 class Car:
-    def __init__(self, budget, reward, cost, draw, strategy=Strategy.RANDOM):
+    def __init__(self, budget, reward, cost, stalemate, strategy=Strategy.RANDOM):
         self.budget = budget
         self.reward = reward
         self.cost = cost
-        self.draw = draw
+        self.stalemate = stalemate
         self.strategy = strategy
 
     def bid(self):
@@ -30,3 +30,6 @@ class Car:
 
     def loss(self, bid):
         self.budget += bid - self.cost
+
+    def draw(self):
+        self.budget -= self.stalemate
