@@ -46,8 +46,6 @@ class MapNode:
             self.gcost = self.cost
 
 
-# I haven't really used python before, so I have to apologize if there is superfluous code left over from
-# where I changed tracks, got new ideas or gained new understanding of the language and the problem
 class World:
     cmap = colors.ListedColormap(['purple', 'white', 'green', 'red', 'yellow'])
 
@@ -135,8 +133,8 @@ class World:
 
         return self.backtrack(current) if success else []
 
-# Initializes world as a 30-by-30 World
-world = World(40, 40)
+# Initializes world as a X-by-Y World
+world = World(50, 50)
 # world.find_best_route() only returns a list of coordinates
 tracks = world.find_best_route()
 #This function is the one to actually draw anythin to the screen.

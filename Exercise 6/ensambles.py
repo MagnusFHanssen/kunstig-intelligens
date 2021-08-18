@@ -52,18 +52,20 @@ def knn(entry, data):
 def subspace_knn(entry, data, n):
     indexes = rnd.sample(range(1, 6), n)
     # I had some problems with sticky references, hence the following
-    sub = np.copy(data)
-    subentry = np.copy(entry)
+    sub = np.array(data, dtype=object)
+    subentry = np.array(entry, dtype=object)
     subentry[1] = entry[1][indexes]
     for index in range(0, len(data)):
-        sub[index][1] = data[index][1][[indexes]]
+        sub[index][1] = data[index][1][tuple([indexes])]
+    # I'm sure there's a more elegant way of comparing in a subspace.
     return knn(subentry, sub)
 
 
 def print_result(entry, result):
     print(entry[0], " has the grades ", entry[1])
     print("The probabilities for different statuses are as follows:")
-    print(" [Poor | Good | Excellent]\n", result, "\n")
+    print(" [Poor | Good | Excellent]")
+    print(" [%1.3f| %1.3f|   %1.3f  ]\n" % tuple(result))
 
 
 print("1: Simple KNN:")
@@ -71,7 +73,7 @@ for vector in unknown:
     print_result(vector, knn(vector, training))
 
 print("\n2: KNN with bagging and committee approach.")
-print("The bagging chooses a random subset of between 2 and 8 feature vectors from the training data.")
+print("The bagging chooses a random subset of between 3 and 8 feature vectors from the training data.")
 print("Then, it calculates 300 of those subsets, and average out the results.")
 print("I consider the training date too sparse for any weighing of votes to make sense.")
 
@@ -83,6 +85,7 @@ for vector in unknown:
     print_result(vector, a)
 
 print("\n3: KNN with subspace modeling and committee approach.")
+print("This is done largely similar to in the last task, with a notable difference:")
 print("2 to 5 of the grades, selected at random, are used for each iteration")
 print("This is done by creating a mask for the feature vector, and then applying it equally")
 a = np.zeros(3)
