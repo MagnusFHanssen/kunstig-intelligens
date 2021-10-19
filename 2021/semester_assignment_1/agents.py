@@ -1,4 +1,5 @@
-from world import *
+from my_enums import *
+
 
 class Agent:
     def __init__(self, scenario, start_pos):

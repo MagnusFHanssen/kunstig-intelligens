@@ -1,14 +1,5 @@
 import numpy as np
-from enum import Enum
 from agents import BountyHunter, Bandit
-import PySimpleGUI as sg
-
-
-class Scenario(Enum):
-    A = 0
-    B = 1
-    C = 2
-    D = 3
 
 
 class World:
