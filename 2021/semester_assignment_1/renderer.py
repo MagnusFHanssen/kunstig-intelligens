@@ -43,6 +43,8 @@ class Renderer:
         self.bandit_image = pygame.image.load(os.path.join('images', 'bandit.png')).convert_alpha()
         self.assistant_image = pygame.image.load(os.path.join('images', 'assistant.png')).convert_alpha()
 
+        self.bg = pygame.image.load(os.path.join('images', 'desert.png')).convert_alpha()
+
         f = open(os.path.join('resources', 'render_map.txt'))
         self.map_data = [[ord(c) for c in row] for row in f.read().split('\n')]
         f.close()
@@ -52,6 +54,7 @@ class Renderer:
 
     def update(self, bounty_hunter=None, bandit=None, assistant=None):
         self.display.fill((0, 0, 0))
+        self.display.blit(self.bg, (0, 0))
 
         for y, row in enumerate(self.map_data):
             for x, tile in enumerate(row):
