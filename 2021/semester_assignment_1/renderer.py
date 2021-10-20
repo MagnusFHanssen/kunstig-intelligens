@@ -58,7 +58,7 @@ class Renderer:
 
         for y, row in enumerate(self.map_data):
             for x, tile in enumerate(row):
-                self.display.blit(self.sand[(x+y) % 4], (680 + (x - y)*32, 100 + (x + y) * 16))
+                self.display.blit(self.sand[((y + 1) % 2) * 2 + ((x + 1) % 2)], (680 + (x - y)*32, 100 + (x + y) * 16))
 
                 if bounty_hunter:
                     if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bounty_hunter[0] and (y-2)/2 == bounty_hunter[1]:
