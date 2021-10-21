@@ -5,7 +5,6 @@ from my_enums import Scenario
 
 wrld = World(Scenario.A)
 
-print(wrld.r_map)
 
 r = Renderer()
 
