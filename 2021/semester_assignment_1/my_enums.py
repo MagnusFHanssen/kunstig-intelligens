@@ -9,8 +9,8 @@ class Scenario(Enum):
 
 
 class Actions(Enum):
-    NORTH = 0
-    EAST = 1
-    SOUTH = 2
-    WEST = 3
-    REST = 4
+    NORTH = (-1, 0)
+    EAST = (0, 1)
+    SOUTH = (1, 0)
+    WEST = (0, -1)
+    REST = (0, 0)

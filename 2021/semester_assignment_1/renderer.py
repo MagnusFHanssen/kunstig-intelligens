@@ -1,4 +1,7 @@
-import pygame, sys, time, random, os
+import os
+import pygame
+import sys
+import time
 from pygame.locals import *
 
 
@@ -61,15 +64,15 @@ class Renderer:
                 self.display.blit(self.sand[((y + 1) % 2) * 2 + ((x + 1) % 2)], (680 + (x - y)*32, 100 + (x + y) * 16))
 
                 if bounty_hunter:
-                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bounty_hunter[0] and (y-2)/2 == bounty_hunter[1]:
+                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bounty_hunter[1] and (y-2)/2 == bounty_hunter[0]:
                         self.display.blit(self.bh_image, (680 + (x - y)*32 - 8, 100 + (x + y) * 16 - 90))
                         bounty_hunter = None
                 if bandit:
-                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bandit[0] and (y-2)/2 == bandit[1]:
+                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bandit[1] and (y-2)/2 == bandit[0]:
                         self.display.blit(self.bandit_image, (680 + (x - y)*32 - 8, 100 + (x + y) * 16 - 90))
                         bandit = None
                 if assistant:
-                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == assistant[0] and (y-2)/2 == assistant[1]:
+                    if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == assistant[1] and (y-2)/2 == assistant[0]:
                         self.display.blit(self.assistant_image, (680 + (x - y)*32 - 8, 100 + (x + y) * 16 - 90))
                         assistant = None
 
