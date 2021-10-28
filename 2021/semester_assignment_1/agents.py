@@ -6,11 +6,10 @@ from my_enums import *
 
 
 class Agent:
-    def __init__(self, scenario, start_state, epsilon=0.9, epsilon_decay=0.9):
+    def __init__(self, scenario, start_state, epsilon=0.8, epsilon_decay=0.99):
         self.scenario = scenario
         self.state = start_state
         self.start_state = start_state
-        self.change = sys.maxsize
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.q_table = Qtable()
@@ -27,7 +26,7 @@ class Agent:
     def update(self, new_state, action, reward):
         old_state = self.state
         self.state = new_state
-        self.q_table.update_table(old_state, new_state, action, reward)
+        return self.q_table.update_table(old_state, new_state, action, reward)
 
     def cull_table(self, blocked_map):
         self.q_table.cull_table(blocked_map)
@@ -37,6 +36,9 @@ class Agent:
 
     def decay_alpha(self):
         self.q_table.decay_alpha()
+
+    def get_best_move(self):
+        return self.q_table.get_highest_q_action(self.state)
 
 
 class BountyHunter(Agent):
@@ -59,14 +61,14 @@ class BountyHunter(Agent):
             return None
 
     def get_move_a(self):
-        is_random = random.uniform(0, 1) <= self.epsilon
+        is_random = random.uniform(0, 1) >= self.epsilon
         if not is_random:
             return self.q_table.get_highest_q_action(self.state)
         else:
             return random.choice([Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH])
 
     def get_move_with_rest(self):
-        is_random = random.uniform(0, 1) <= self.epsilon
+        is_random = random.uniform(0, 1) >= self.epsilon
         if not is_random:
             return self.q_table.get_highest_q_action(self.state)
         else:
@@ -99,13 +101,13 @@ class Bandit(Agent):
         return self.state
 
     def hide_random(self):
-        self.state = (5, 2) if random.randrange(1, 100) <= 35 else (3, 9)
+        self.state = (5, 2) if random.randrange(1, 100) <= 35 else (3, 8)
     
     def update(self, new_state, action, reward):
         if self.scenario == Scenario.A:
-            return None
+            return 0
         elif self.scenario == Scenario.B:
-            return None
+            return 0
         else:
             super(Bandit, self).update(new_state, action, reward)
 

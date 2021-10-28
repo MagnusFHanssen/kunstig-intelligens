@@ -8,6 +8,7 @@ class Qtable:
         self.alpha = 0.1
         self.alpha_decay = 0.99
         self.gamma = 0.7
+        self.dimensions = dimensions
 
         keys = [Actions.NORTH, Actions.SOUTH, Actions.WEST, Actions.EAST]
         if can_rest:
@@ -35,6 +36,7 @@ class Qtable:
         q_max_next_state = self.get_highest_q_value(new_state if new_state is not None else current_state)
         new_q = (1 - self.alpha) * q_current + self.alpha * (q_max_next_state * self.gamma + reward)
         self.table[current_state][action] = new_q
+        return abs(q_current - new_q)
 
     def cull_table(self, blocked_map):
         for key in blocked_map:
@@ -42,3 +44,23 @@ class Qtable:
 
     def decay_alpha(self):
         self.alpha = self.alpha_decay * self.alpha
+
+    def print_table(self):
+        for x in range(self.dimensions[0]):
+            row = ""
+            for y in range(self.dimensions[1]):
+                if (x, y) not in self.table:
+                    row += "■"
+                else:
+                    best_action = self.get_highest_q_action((x, y))
+                    if best_action is Actions.REST:
+                        row += "R"
+                    elif best_action is Actions.EAST:
+                        row += "→"
+                    elif best_action is Actions.WEST:
+                        row += "←"
+                    elif best_action is Actions.NORTH:
+                        row += "↑"
+                    else:
+                        row += "↓"
+            print(row)

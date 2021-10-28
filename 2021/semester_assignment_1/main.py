@@ -15,15 +15,12 @@ scenario_d_3 = [(9, 0), (8, 0), (8, 1), (8, 2), (7, 2), (7, 3), (6, 3), (6, 4), 
                 (4, 5), (4, 6), (3, 6), (2, 6), (2, 7), (1, 7), (1, 8), (1, 9), (0, 9), (1, 9),
                 (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9)]
 
-#for i in range(len(scenario_d_1)):
-#    r.update(scenario_d_1[i], scenario_d_2[i], scenario_d_3[i])
-#    time.sleep(0.1)
-#r.quit()
+s = Scenario.A
 
-bounty_hunter = BountyHunter(Scenario.B, (9, 0))
-bandit = Bandit(Scenario.B, (3, 8))
+bounty_hunter = BountyHunter(s, (9, 0))
+bandit = Bandit(s, (3, 8))
 
-world = World(Scenario.B)
+world = World(s)
 
 world.set_agent(bounty_hunter)
 world.set_agent(bandit)
@@ -31,3 +28,13 @@ world.set_agent(bandit)
 world.train()
 
 world.show_solution()
+
+bounty_hunter.q_table.print_table()
+
+print(world.convergent)
+print(world.current_episode)
+
+world.plot_max_q_change()
+
+print(world.q_change_list[-1:])
+

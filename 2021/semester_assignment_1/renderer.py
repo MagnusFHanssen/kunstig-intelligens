@@ -112,4 +112,3 @@ class Renderer:
     @staticmethod
     def quit():
         pygame.quit()
-        sys.exit()
