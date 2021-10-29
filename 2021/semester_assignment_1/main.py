@@ -16,6 +16,7 @@ scenario_d_3 = [(9, 0), (8, 0), (8, 1), (8, 2), (7, 2), (7, 3), (6, 3), (6, 4), 
                 (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9)]
 
 s = Scenario.A
+# TODO: Finish up parts c and d
 
 bounty_hunter = BountyHunter(s, (9, 0))
 bandit = Bandit(s, (3, 8))
@@ -27,14 +28,12 @@ world.set_agent(bandit)
 
 world.train()
 
-world.show_solution()
+#world.show_solution()
 
-bounty_hunter.q_table.print_table()
+#bounty_hunter.q_table.print_table()
 
-print(world.convergent)
-print(world.current_episode)
+#print(world.convergent)
+#print(world.current_episode)
 
-world.plot_max_q_change()
-
-print(world.q_change_list[-1:])
+#world.plot_max_q_change()
 

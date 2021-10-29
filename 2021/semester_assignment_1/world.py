@@ -1,3 +1,4 @@
+import copy
 import random
 import time
 
@@ -63,6 +64,23 @@ class World:
         return self.bounty_hunter.get_state() == bandit_state or self.bounty_hunter.deputy_state == bandit_state
 
     def train(self):
+        if self.bounty_hunter.model_based:
+            self.train_p_i()
+        else:
+            self.train_q()
+
+    def train_p_i(self):
+        p_table = {}
+        r_table = copy.deepcopy(self.r_map)
+        r_table[self.bandit.get_state()[0]][self.bandit.get_state()[1]] = 1000
+        r_table[:] = [r + self.move_cost for r in r_table]
+        for x in range(self.height):
+            for y in range(self.width):
+                p_table[(x, y)] = (Actions.NORTH if (x, y) not in self.blocked_map else None)
+        self.bounty_hunter.init_model_based(r_table, p_table)
+        # TODO: Finish implementing the policy iteration.
+
+    def train_q(self):
         self.bounty_hunter.cull_table(self.blocked_map)
         self.bandit.cull_table(self.blocked_map)
 

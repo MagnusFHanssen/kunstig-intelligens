@@ -1,3 +1,4 @@
+import copy
 import sys
 import random
 from qtable import Qtable
@@ -45,6 +46,9 @@ class BountyHunter(Agent):
     def __init__(self, scenario, start_state, model_based=False):
         super().__init__(scenario, start_state)
         self.model_based = model_based
+        if model_based:
+            self.r_table = None
+            self.p_table = None
         if self.scenario == Scenario.D:
             self.deputy_state = start_state
         else:
@@ -61,6 +65,15 @@ class BountyHunter(Agent):
             return None
 
     def get_move_a(self):
+        if self.model_based:
+            return self.get_move_p_i()
+        else:
+            return self.get_move_a_q()
+
+    def get_move_p_i(self):
+        return self.p_table[self.state]
+
+    def get_move_a_q(self):
         is_random = random.uniform(0, 1) >= self.epsilon
         if not is_random:
             return self.q_table.get_highest_q_action(self.state)
@@ -82,6 +95,13 @@ class BountyHunter(Agent):
         self.state = self.start_state
         if self.deputy_state is not None:
             self.deputy_state = self.start_state
+
+    def init_model_based(self, r_table, p_table, randomize=True):
+        self.r_table = r_table
+        self.p_table = p_table
+        for key, value in p_table:
+            if value is not None:
+                p_table[key] = random.choice([Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH])
 
 
 class Bandit(Agent):
