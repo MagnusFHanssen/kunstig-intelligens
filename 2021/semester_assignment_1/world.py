@@ -31,6 +31,21 @@ class World:
         self.current_episode = 1
         self.convergent = False
         self.q_change_list: list[float] = []
+        self.v_change_list: list[float] = []
+
+        self.t_table = {}
+        for row in range(self.height):
+            for col in range(self.width):
+                state = (row, col)
+                if state not in self.blocked_map:
+                    self.t_table[state] = {}
+
+        actions = [Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH, Actions.REST] if scenario != Scenario.A \
+            else [Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH]
+        for state_0 in self.t_table.keys():
+            for action in actions:
+                state_1 = self.test_move(state_0, action)
+                self.t_table[state_0][action] = state_1 if state_1 else state_0
 
     def set_agent(self, agent):
         if isinstance(agent, BountyHunter):
@@ -70,22 +85,30 @@ class World:
             self.train_q()
 
     def train_p_i(self):
-        p_table = {}
+        actions = [Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH]
         r_table = copy.deepcopy(self.r_map)
         r_table[self.bandit.get_state()[0]][self.bandit.get_state()[1]] = 1000
         r_table[:] = [r + self.move_cost for r in r_table]
-        for x in range(self.height):
-            for y in range(self.width):
-                p_table[(x, y)] = (Actions.NORTH if (x, y) not in self.blocked_map else None)
-        self.bounty_hunter.init_model_based(r_table, p_table)
+
+        self.bounty_hunter.init_model_based(r_table, actions, self.t_table, self.bandit.get_state())
         # TODO: Finish implementing the policy iteration.
+
+        while self.current_episode < self.episodes and not self.convergent:
+            self.v_change_list.append(self.bounty_hunter.iterate_value())
+            self.bounty_hunter.iterate_policy()
+            if max(self.v_change_list[-10:]) < 1:
+                self.convergent = True
+            else:
+                self.current_episode += 1
+
+
 
     def train_q(self):
         self.bounty_hunter.cull_table(self.blocked_map)
         self.bandit.cull_table(self.blocked_map)
 
         max_change = 0
-        while self.current_episode <= self.episodes and not self.convergent:
+        while self.current_episode < self.episodes and not self.convergent:
             bounty_hunter_start = self.get_random_state()
             self.bounty_hunter.set_state(bounty_hunter_start,
                                          bounty_hunter_start if self.bounty_hunter.deputy_state is not None else None)
@@ -168,5 +191,19 @@ class World:
         plt.text(max_x - max_x * 0.35, max_y - max_y * 0.15,
                  f'Last {eps_str}: {round(self.bounty_hunter.epsilon, 3)}\nLast {alpha_str}: '
                  f'{round(self.bounty_hunter.q_table.alpha, 3)}\nNo. Episodes: '
+                 f'{self.current_episode}', bbox=dict(facecolor='grey', alpha=0.5))
+        plt.show()
+
+    def plot_max_v_change(self):
+        plt.plot(self.v_change_list)
+        plt.title("Scenario {}: Policy Iteration: Max change in V(s)".format(self.scenario.name))
+        plt.xlabel("Episode")
+        plt.ylabel("Max difference")
+        axes = plt.gca()
+        min_x, max_x = axes.get_xlim()
+        min_y, max_y = axes.get_ylim()
+        gamma_str = "\u03B3"
+        plt.text(max_x - max_x * 0.35, max_y - max_y * 0.15,
+                 f'Decay {gamma_str}: {round(self.bounty_hunter.gamma, 3)}\nNo. Episodes: '
                  f'{self.current_episode}', bbox=dict(facecolor='grey', alpha=0.5))
         plt.show()

@@ -48,7 +48,12 @@ class BountyHunter(Agent):
         self.model_based = model_based
         if model_based:
             self.r_table = None
-            self.p_table = None
+            self.actions = None
+            self.t_table = None
+            self.v_table = None
+            self.goal_state = None
+            self.gamma = 0.7
+            self.p_table = {}
         if self.scenario == Scenario.D:
             self.deputy_state = start_state
         else:
@@ -63,6 +68,12 @@ class BountyHunter(Agent):
             return self.get_move_with_rest()
         else:
             return None
+
+    def get_best_move(self):
+        if self.model_based:
+            return self.get_move_p_i()
+        else:
+            return super(BountyHunter, self).get_best_move()
 
     def get_move_a(self):
         if self.model_based:
@@ -96,12 +107,61 @@ class BountyHunter(Agent):
         if self.deputy_state is not None:
             self.deputy_state = self.start_state
 
-    def init_model_based(self, r_table, p_table, randomize=True):
+    def init_model_based(self, r_table, actions, t_table, goal_state):
         self.r_table = r_table
-        self.p_table = p_table
-        for key, value in p_table:
-            if value is not None:
-                p_table[key] = random.choice([Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH])
+        self.actions = actions
+        self.t_table = t_table
+        self.goal_state = goal_state
+        # Randomly select initial policy
+        for state in t_table.keys():
+            self.p_table[state] = random.choice(actions)
+
+    def iterate_value(self):
+        max_diff = 0
+        if self.v_table:
+            for state_0, adjacent_states in self.t_table.items():
+                if state_0 == self.goal_state:
+                    continue
+                v_mark = self.r_table[state_0[0]][state_0[1]] \
+                    + self.gamma * self.v_table[adjacent_states[self.p_table[state_0]]]
+                max_diff = max(max_diff, abs(v_mark - self.v_table[state_0]))
+                self.v_table[state_0] = v_mark
+        else:
+            self.v_table = {}
+            for state in self.t_table.keys():
+                self.v_table[state] = self.r_table[state[0]][state[1]]
+            max_diff = max(max(self.v_table.values()), abs(min(self.v_table.values())))
+        return max_diff
+
+    def iterate_policy(self):
+        for state_0, transitions in self.t_table.items():
+            best_action = None
+            best_value = - sys.maxsize
+            for action, state_marked in transitions.items():
+                if self.v_table[state_marked] > best_value:
+                    best_action = action
+                    best_value = self.v_table[state_marked]
+            self.p_table[state_0] = best_action
+
+    def print_policy(self):
+        for x in range(10):
+            row = ""
+            for y in range(10):
+                if (x, y) not in self.p_table.keys():
+                    row += "■"
+                else:
+                    best_action = self.p_table[(x, y)]
+                    if best_action is Actions.REST:
+                        row += "R"
+                    elif best_action is Actions.EAST:
+                        row += "→"
+                    elif best_action is Actions.WEST:
+                        row += "←"
+                    elif best_action is Actions.NORTH:
+                        row += "↑"
+                    else:
+                        row += "↓"
+            print(row)
 
 
 class Bandit(Agent):
