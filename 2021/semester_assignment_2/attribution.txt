@@ -1,0 +1,6 @@
+The contents of this directory was cloned from the GitHub repository https://github.com/IgnacioCarlucho/DDPG_MountainCar
+It was accessed 2021-10-31
+It is owned by Ignacio Carlucho
+
+The main.py file is the exception to this.
+It was received from my colleague Casper, and as far as I can tell it is his original work.
