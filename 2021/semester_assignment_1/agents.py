@@ -91,14 +91,14 @@ class BountyHunter(Agent):
         return self.p_table[self.state]
 
     def get_move_a_q(self):
-        is_random = random.uniform(0, 1) >= self.epsilon
+        is_random = random.uniform(0, 1) < self.epsilon
         if not is_random:
             return self.q_table.get_highest_q_action(self.state)
         else:
             return random.choice([Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH])
 
     def get_move_with_rest(self):
-        is_random = random.uniform(0, 1) >= self.epsilon
+        is_random = random.uniform(0, 1) < self.epsilon
         if not is_random:
             return self.q_table.get_highest_q_action(self.state)
         else:
@@ -181,7 +181,11 @@ class Bandit(Agent):
         if self.scenario is Scenario.A or self.scenario is Scenario.B:
             return Actions.REST
         else:
-            return None
+            is_random = random.uniform(0, 1) < self.epsilon
+            if not is_random:
+                return self.q_table.get_highest_q_action(self.state)
+            else:
+                return random.choice([Actions.EAST, Actions.WEST, Actions.NORTH, Actions.SOUTH, Actions.REST])
 
     def get_state(self):
         if self.scenario is Scenario.B:
@@ -197,6 +201,6 @@ class Bandit(Agent):
         elif self.scenario == Scenario.B:
             return 0
         else:
-            super(Bandit, self).update(new_state, action, reward)
+            return super(Bandit, self).update(new_state, action, reward)
 
 

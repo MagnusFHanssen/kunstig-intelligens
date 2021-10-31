@@ -6,11 +6,11 @@ import PySimpleGUI as sg
 
 sg.theme('DarkAmber')
 
-layout = [[sg.Text('Choose the preferred options and scenario')],
+layout = [[sg.Text('Choose the preferred options:')],
           [sg.Checkbox('Make graph', default=True, key='prnt_graph'),
            sg.Checkbox('Show fancy graphics', default=False, key='show_graphx'),
            sg.Checkbox('Show resulting policy', default=True, key='show_pol')],
-          [sg.Text('Select scenario to run')],
+          [sg.Text('Select scenario to run:')],
           [sg.Radio('A (policy iteration)', 'scenario', True, key='a_pi'),
            sg.Radio('A (Q-learning)', 'scenario', key='a_ql'),
            sg.Radio('B (Q-learning)', 'scenario', key='b_ql'),
@@ -21,7 +21,8 @@ layout = [[sg.Text('Choose the preferred options and scenario')],
            sg.Radio('10', 'episodes', key='e_10'),
            sg.Radio('1000', 'episodes', key='e_1000'),
            sg.Radio('5000', 'episodes', True, key='e_5000'),
-           sg.Radio('10000', 'episodes', key='e_10000')],
+           sg.Radio('10000', 'episodes', key='e_10000'),
+           sg.Radio('100000', 'episodes', key='e_100000')],
           [sg.Button('Launch'), sg.Button('Exit')]]
 
 window = sg.Window('Agent setup', layout)
@@ -59,6 +60,8 @@ while True:
             max_episodes = 5000
         elif values['e_10000']:
             max_episodes = 10000
+        elif values['e_100000']:
+            max_episodes = 100000
         else:
             break
 
@@ -92,6 +95,7 @@ while True:
                 world.plot_max_v_change()
             else:
                 world.plot_max_q_change()
+                world.plot_rewards_over_time()
 
         print("The agents sampled the reward-function {} times".format(bounty_hunter.total_samples))
 

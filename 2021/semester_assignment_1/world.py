@@ -4,6 +4,7 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from agents import BountyHunter, Bandit
 from my_enums import *
@@ -33,6 +34,10 @@ class World:
         self.convergent = False
         self.q_change_list: list[float] = []
         self.v_change_list: list[float] = []
+        self.loot_locations = {(4, 6), (0, 9), (9, 4), (5, 2)}
+        self.loot_state = random.choice([loc for loc in self.loot_locations])
+        self.bh_reward_list = []
+        self.bandit_reward_list = []
 
         self.t_table = {}
         for row in range(self.height):
@@ -65,9 +70,16 @@ class World:
                 return None
 
     def get_reward(self, state, action, is_bounty_hunter=True):
-        bandit_state = self.bandit.get_state()
         penalty = self.r_map[state[0]][state[1]] + (self.wait_cost if action is Actions.REST else self.move_cost)
-        return penalty + (1000 if state == bandit_state and is_bounty_hunter else 0)
+        if is_bounty_hunter:
+            bandit_state = self.bandit.get_state()
+            return penalty + (1000 if state == bandit_state or bandit_state in state else 0)
+        elif state == self.loot_state:
+            self.loot_state = random.choice([loc for loc in self.loot_locations if loc != self.loot_state])
+            return penalty + 1000
+        else:
+            return penalty
+
 
     def get_random_state(self):
         state = None
@@ -111,24 +123,35 @@ class World:
             self.bounty_hunter.set_state(bounty_hunter_start,
                                          bounty_hunter_start if self.bounty_hunter.deputy_state is not None else None)
             self.bandit.reset_state()
+            if self.scenario in [Scenario.C, Scenario.D]:
+                self.bandit.set_state(self.get_random_state())
             # Episode:
             move_count = 0
+            bandit_reward = 0
+            bounty_hunter_reward = 0
             while move_count < self.max_moves:
                 bh_move = self.bounty_hunter.get_move()
                 bh_new_state = self.test_move(self.bounty_hunter.get_state(), bh_move)
                 if bh_new_state is None:
                     bh_new_state = self.bounty_hunter.get_state()
-
-                max_change = max(max_change, self.bounty_hunter.update(bh_new_state, bh_move,
-                                                                       self.get_reward(bh_new_state, bh_move)))
+                reward = self.get_reward(bh_new_state, bh_move)
+                max_change = max(max_change, self.bounty_hunter.update(bh_new_state, bh_move, reward))
+                bounty_hunter_reward += reward
                 if self.is_caught():
                     break
 
                 bandit_move = self.bandit.get_move()
                 bandit_new_state = self.test_move(self.bandit.get_state(), bandit_move)
-                max_change = max(max_change, self.bandit.update(bandit_new_state, bandit_move,
-                                                                self.get_reward(bandit_new_state, bandit_move, False)))
+                if bandit_new_state is None:
+                    bandit_new_state = self.bandit.get_state()
+                reward = self.get_reward(bandit_new_state, bandit_move, False)
+                max_change = max(max_change, self.bandit.update(bandit_new_state, bandit_move, reward))
+                bandit_reward += reward
                 move_count += 1
+
+            self.bh_reward_list.append(bounty_hunter_reward)
+            self.bandit_reward_list.append(bandit_reward)
+
             self.q_change_list.append(max_change)
             max_change = 0
             if max(self.q_change_list[-10:]) < 1:
@@ -139,7 +162,8 @@ class World:
                 self.__decay(self.bandit, 20, 40)
 
     def render(self, renderer):
-        renderer.update(self.bounty_hunter.get_state(), self.bandit.state, self.bounty_hunter.deputy_state)
+        if renderer.running:
+            renderer.update(self.bounty_hunter.get_state(), self.bandit.state, self.bounty_hunter.deputy_state)
 
     def __decay(self, agent, alpha_count, epsilon_count):
         if self.current_episode % epsilon_count == 0:
@@ -150,9 +174,13 @@ class World:
     def show_solution(self):
         from renderer import Renderer
         self.bounty_hunter.reset_state()
-        r = Renderer()
+        self.bandit.reset_state()
+        if self.scenario == Scenario.C or self.scenario == Scenario.D:
+            r = Renderer(self.loot_locations)
+        else:
+            r = Renderer()
         self.render(r)
-        while True:
+        while r.running:
             bh_move = self.bounty_hunter.get_best_move()
             bh_new_state = self.test_move(self.bounty_hunter.get_state(), bh_move)
             if bh_new_state is None:
@@ -162,6 +190,7 @@ class World:
             if self.is_caught():
                 self.render(r)
                 time.sleep(2)
+                r.quit()
                 break
 
             if self.scenario is Scenario.C or self.scenario is Scenario.D:
@@ -173,8 +202,6 @@ class World:
                 bandit_new_state = self.bandit.get_state()
             self.bandit.set_state(bandit_new_state)
             self.render(r)
-
-        r.quit()
 
     def plot_max_q_change(self):
         plt.plot(self.q_change_list)
@@ -208,4 +235,26 @@ class World:
                  f'{self.current_episode}', bbox=dict(facecolor='grey', alpha=0.5))
         if self.export_result:
             plt.savefig('results/scenario_{}_pol_iteration.png'.format(self.scenario.name), bbox_inches='tight')
+        plt.show()
+
+    def plot_rewards_over_time(self, rolling_average=True):
+        df = pd.DataFrame({'Bounty Hunter': self.bh_reward_list, 'Bandit': self.bandit_reward_list})
+        df['Rolling BH'] = df['Bounty Hunter'].rolling(100).mean()
+        if self.scenario in [Scenario.C, Scenario.D]:
+            df['Rolling Bandit'] = df['Bandit'].rolling(100).mean()
+        if rolling_average:
+            plt.plot(df['Rolling BH'], label='Bounty Hunter')
+            if self.scenario in [Scenario.C, Scenario.D]:
+                plt.plot(df['Rolling Bandit'], label='Bandit')
+            plt.title('Rolling average of the rewards per episode of scenario {}'.format(self.scenario.name))
+        else:
+            plt.plot(df['Bounty Hunter'], label='Bounty Hunter')
+            if self.scenario in [Scenario.C, Scenario.D]:
+                plt.plot(df['Bandit'], label='Bandit')
+            plt.title('Rewards per episode of scenario {}'.format(self.scenario.name))
+        plt.xlabel("Episode")
+        plt.ylabel("Reward")
+        plt.legend(loc='lower left')
+        if self.export_result:
+            plt.savefig('results/scenario_{}_reward.png'.format(self.scenario.name), bbox_inches='tight')
         plt.show()

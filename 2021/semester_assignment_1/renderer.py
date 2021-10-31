@@ -19,7 +19,8 @@ class Renderer:
     B_ML = ord('b')
     B_IC = ord('c')
 
-    def __init__(self):
+    def __init__(self, loot_locations=None):
+        self.loot_locations = loot_locations
         pygame.init()
         pygame.display.set_caption('Agent Visualisation')
         self.screen = pygame.display.set_mode((1440, 900), 0, 32)
@@ -46,22 +47,30 @@ class Renderer:
         self.bandit_image = pygame.image.load(os.path.join('images', 'bandit.png')).convert_alpha()
         self.assistant_image = pygame.image.load(os.path.join('images', 'assistant.png')).convert_alpha()
 
+        self.box = pygame.image.load(os.path.join('images', 'box.png')).convert_alpha()
+
         self.bg = pygame.image.load(os.path.join('images', 'desert.png')).convert_alpha()
 
         f = open(os.path.join('resources', 'render_map.txt'))
         self.map_data = [[ord(c) for c in row] for row in f.read().split('\n')]
         f.close()
 
+        self.running = True
+
     def print_map(self):
         print(self.map_data)
 
     def update(self, bounty_hunter=None, bandit=None, assistant=None):
         self.display.fill((255, 255, 255))
-        # self.display.blit(self.bg, (0, 0))
+        self.display.blit(self.bg, (0, 0))
 
         for y, row in enumerate(self.map_data):
             for x, tile in enumerate(row):
                 self.display.blit(self.sand[((y + 1) % 2) * 2 + ((x + 1) % 2)], (680 + (x - y)*32, 100 + (x + y) * 16))
+
+                if self.loot_locations:
+                    if x % 2 == 0 and y % 2 == 0 and ((y-2)/2, (x-2)/2) in self.loot_locations:
+                        self.display.blit(self.box, (680 + (x - y)*32 + 16, 100 + (x + y) * 16 - 8))
 
                 if bounty_hunter:
                     if x % 2 == 0 and y % 2 == 0 and (x-2)/2 == bounty_hunter[1] and (y-2)/2 == bounty_hunter[0]:
@@ -100,15 +109,14 @@ class Renderer:
                     self.display.blit(self.blocks[Renderer.B_IC], (680 + (x - y) * 32 + 5, 100 + (x + y) * 16 - 58))
 
         for event in pygame.event.get():
-            if event.type == QUIT:
-                Renderer.quit()
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                Renderer.quit()
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                self.quit()
+                return
 
         self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
         pygame.display.update()
         time.sleep(1)
 
-    @staticmethod
-    def quit():
+    def quit(self):
+        self.running = False
         pygame.quit()
