@@ -69,7 +69,7 @@ class BountyHunter(Agent):
         elif self.scenario is not Scenario.D:
             return self.get_move_with_rest()
         else:
-            return None
+            return self.get_move_d()
 
     def get_move_d(self):
         # TODO: Implement part D properly

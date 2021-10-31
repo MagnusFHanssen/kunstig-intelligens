@@ -4,4 +4,9 @@ venv39/
 fun/
 zipped_handins/
 results/
+mountain_car_env/
+plots/
 *.pyc
+critic_model*
+actor_model*
+checkpoint

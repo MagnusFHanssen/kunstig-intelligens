@@ -282,4 +282,4 @@ def ddpg(episodes=1000, MINIBATCH_SIZE=40, GAMMA=0.99, epsilon=1.0, min_epsilon=
 
 if __name__ == '__main__':
     ddpg(episodes=100, epsilon=1., train=True)
-    # ddpg(episodes=100, train=False)
+    ddpg(episodes=100, train=False)

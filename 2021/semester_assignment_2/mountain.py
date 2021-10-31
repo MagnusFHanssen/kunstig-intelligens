@@ -120,7 +120,7 @@ def trainer(epochs=1000, MINIBATCH_SIZE=40, GAMMA = 0.99, epsilon=1.0, min_epsil
 
                         # 5.2 get y_t where: 
                         y_i = []
-                        for k in xrange(MINIBATCH_SIZE):
+                        for k in range(MINIBATCH_SIZE):  # Possible error here
                             if t_batch[k]:
                                 y_i.append(r_batch[k])
                             else:
