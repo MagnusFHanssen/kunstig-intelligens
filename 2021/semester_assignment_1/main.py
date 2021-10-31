@@ -2,39 +2,98 @@ from world import *
 from my_enums import Scenario
 from agents import BountyHunter, Bandit
 
-scenario_a = [(9, 0), (9, 1), (8, 1), (8, 2), (7, 2), (7, 3), (6, 3), (6, 4), (5, 4), (5, 5), (4, 5), (4, 6), (4, 6),
-              (3, 6), (2, 6), (2, 7), (1, 7), (1, 8), (1, 9), (0, 9)]
+import PySimpleGUI as sg
 
-scenario_d_1 = [(9, 0), (9, 1), (9, 2), (9, 3), (9, 4), (9, 5), (9, 6), (9, 7), (9, 8), (9, 9),
-                (9, 9), (8, 9), (7, 9), (6, 9), (5, 9), (4, 9), (3, 9), (2, 9), (1, 9), (0, 9),
-                (0, 9), (0, 9), (0, 9), (0, 9), (0, 9), (0, 9), (0, 9), (0, 9), (0, 9), (0, 9)]
-scenario_d_2 = [(9, 9), (8, 9), (7, 9), (6, 9), (5, 9), (4, 9), (3, 9), (3, 8), (2, 8), (2, 7),
-                (2, 6), (2, 5), (2, 4), (3, 4), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (7, 4),
-                (7, 3), (7, 4), (7, 3), (7, 4), (7, 3), (7, 4), (7, 3), (7, 4), (7, 3), (7, 4)]
-scenario_d_3 = [(9, 0), (8, 0), (8, 1), (8, 2), (7, 2), (7, 3), (6, 3), (6, 4), (5, 4), (5, 5),
-                (4, 5), (4, 6), (3, 6), (2, 6), (2, 7), (1, 7), (1, 8), (1, 9), (0, 9), (1, 9),
-                (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9), (0, 9), (1, 9)]
+sg.theme('DarkAmber')
 
-s = Scenario.A
+layout = [[sg.Text('Choose the preferred options and scenario')],
+          [sg.Checkbox('Make graph', default=True, key='prnt_graph'),
+           sg.Checkbox('Show fancy graphics', default=False, key='show_graphx'),
+           sg.Checkbox('Show resulting policy', default=True, key='show_pol')],
+          [sg.Text('Select scenario to run')],
+          [sg.Radio('A (policy iteration)', 'scenario', True, key='a_pi'),
+           sg.Radio('A (Q-learning)', 'scenario', key='a_ql'),
+           sg.Radio('B (Q-learning)', 'scenario', key='b_ql'),
+           sg.Radio('C (Q-learning)', 'scenario', key='c_ql'),
+           sg.Radio('D (Q-learning)', 'scenario', key='d_ql')],
+          [sg.Text('Select max number of episodes:')],
+          [sg.Radio('1', 'episodes', key='e_1'),
+           sg.Radio('10', 'episodes', key='e_10'),
+           sg.Radio('1000', 'episodes', key='e_1000'),
+           sg.Radio('5000', 'episodes', True, key='e_5000'),
+           sg.Radio('10000', 'episodes', key='e_10000')],
+          [sg.Button('Launch'), sg.Button('Exit')]]
+
+window = sg.Window('Agent setup', layout)
+
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Exit':
+        break
+    if event == 'Launch':
+        print_graph = values['prnt_graph']
+        fancy_graphics = values['show_graphx']
+        show_policy = values['show_pol']
+        model_based = False
+        if values['a_pi']:
+            model_based = True
+            scen = Scenario.A
+        elif values['a_ql']:
+            scen = Scenario.A
+        elif values['b_ql']:
+            scen = Scenario.B
+        elif values['c_ql']:
+            scen = Scenario.C
+        elif values['d_ql']:
+            scen = Scenario.D
+        else:
+            break
+
+        if values['e_1']:
+            max_episodes = 1
+        elif values['e_10']:
+            max_episodes = 10
+        elif values['e_1000']:
+            max_episodes = 1000
+        elif values['e_5000']:
+            max_episodes = 5000
+        elif values['e_10000']:
+            max_episodes = 10000
+        else:
+            break
+
+        bounty_hunter = BountyHunter(scen, (9, 0), model_based)
+        bandit = Bandit(scen, (3, 8))
+
+        world = World(scen, max_episodes)
+
+        world.set_agent(bounty_hunter)
+        world.set_agent(bandit)
+
+        print("\nStarting scenario {}".format(scen.name))
+
+        world.train()
+
+        print("System {} convergent after {} episodes".format(("IS" if world.convergent else "NOT"),
+                                                              world.current_episode))
+
+        if show_policy:
+            print("Bounty hunter policy:")
+            if model_based:
+                bounty_hunter.print_policy()
+            else:
+                bounty_hunter.q_table.print_table()
+            if scen == Scenario.C or scen == Scenario.D:
+                print("Bandit policy:")
+                bandit.q_table.print_table()
+
+        if print_graph:
+            if model_based:
+                world.plot_max_v_change()
+            else:
+                world.plot_max_q_change()
+
+        if fancy_graphics:
+            world.show_solution()
+
 # TODO: Finish up parts c and d
-
-bounty_hunter = BountyHunter(s, (9, 0), True)
-bandit = Bandit(s, (3, 8))
-
-world = World(s)
-
-world.set_agent(bounty_hunter)
-world.set_agent(bandit)
-
-world.train()
-
-#world.show_solution()
-bounty_hunter.print_policy()
-#bounty_hunter.q_table.print_table()
-
-print(world.convergent)
-print(world.current_episode)
-
-#world.plot_max_q_change()
-world.plot_max_v_change()
-
