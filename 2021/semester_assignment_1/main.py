@@ -93,6 +93,8 @@ while True:
             else:
                 world.plot_max_q_change()
 
+        print("The agents sampled the reward-function {} times".format(bounty_hunter.total_samples))
+
         if fancy_graphics:
             world.show_solution()
 

@@ -56,8 +56,8 @@ class Renderer:
         print(self.map_data)
 
     def update(self, bounty_hunter=None, bandit=None, assistant=None):
-        self.display.fill((0, 0, 0))
-        self.display.blit(self.bg, (0, 0))
+        self.display.fill((255, 255, 255))
+        # self.display.blit(self.bg, (0, 0))
 
         for y, row in enumerate(self.map_data):
             for x, tile in enumerate(row):

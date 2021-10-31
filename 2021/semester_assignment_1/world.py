@@ -21,6 +21,7 @@ class World:
     blocked_map = {(3, 1), (3, 2), (3, 7), (4, 1), (4, 2), (4, 7), (5, 6),
                    (5, 7), (6, 6), (6, 7)}
     max_moves = 10000
+    export_result = True
 
     def __init__(self, scenario, episodes=10000):
         self.scenario = scenario
@@ -91,7 +92,6 @@ class World:
         r_table[:] = [r + self.move_cost for r in r_table]
 
         self.bounty_hunter.init_model_based(r_table, actions, self.t_table, self.bandit.get_state())
-        # TODO: Finish implementing the policy iteration.
 
         while self.current_episode < self.episodes and not self.convergent:
             self.v_change_list.append(self.bounty_hunter.iterate_value())
@@ -100,8 +100,6 @@ class World:
                 self.convergent = True
             else:
                 self.current_episode += 1
-
-
 
     def train_q(self):
         self.bounty_hunter.cull_table(self.blocked_map)
@@ -192,6 +190,8 @@ class World:
                  f'Last {eps_str}: {round(self.bounty_hunter.epsilon, 3)}\nLast {alpha_str}: '
                  f'{round(self.bounty_hunter.q_table.alpha, 3)}\nNo. Episodes: '
                  f'{self.current_episode}', bbox=dict(facecolor='grey', alpha=0.5))
+        if self.export_result:
+            plt.savefig('results/scenario_{}_q_learning.png'.format(self.scenario.name), bbox_inches='tight')
         plt.show()
 
     def plot_max_v_change(self):
@@ -206,4 +206,6 @@ class World:
         plt.text(max_x - max_x * 0.35, max_y - max_y * 0.15,
                  f'Decay {gamma_str}: {round(self.bounty_hunter.gamma, 3)}\nNo. Episodes: '
                  f'{self.current_episode}', bbox=dict(facecolor='grey', alpha=0.5))
+        if self.export_result:
+            plt.savefig('results/scenario_{}_pol_iteration.png'.format(self.scenario.name), bbox_inches='tight')
         plt.show()

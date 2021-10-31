@@ -14,6 +14,7 @@ class Agent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.q_table = Qtable()
+        self.total_samples = 0
 
     def get_state(self):
         return self.state
@@ -27,6 +28,7 @@ class Agent:
     def update(self, new_state, action, reward):
         old_state = self.state
         self.state = new_state
+        self.total_samples += 1
         return self.q_table.update_table(old_state, new_state, action, reward)
 
     def cull_table(self, blocked_map):
@@ -68,6 +70,10 @@ class BountyHunter(Agent):
             return self.get_move_with_rest()
         else:
             return None
+
+    def get_move_d(self):
+        # TODO: Implement part D properly
+        return None
 
     def get_best_move(self):
         if self.model_based:
@@ -124,12 +130,14 @@ class BountyHunter(Agent):
                     continue
                 v_mark = self.r_table[state_0[0]][state_0[1]] \
                     + self.gamma * self.v_table[adjacent_states[self.p_table[state_0]]]
+                self.total_samples += 1
                 max_diff = max(max_diff, abs(v_mark - self.v_table[state_0]))
                 self.v_table[state_0] = v_mark
         else:
             self.v_table = {}
             for state in self.t_table.keys():
                 self.v_table[state] = self.r_table[state[0]][state[1]]
+                self.total_samples += 1
             max_diff = max(max(self.v_table.values()), abs(min(self.v_table.values())))
         return max_diff
 

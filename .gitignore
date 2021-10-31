@@ -3,4 +3,5 @@ venv/
 venv39/
 fun/
 zipped_handins/
+results/
 *.pyc
